@@ -1,0 +1,8 @@
+.classpath
+.project
+.vscode/*
+.metadata/*
+.settings/*
+RemoteSystemsTempFiles/*
+target/*
+testdoc2/*
