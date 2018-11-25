@@ -18,7 +18,6 @@ import java.util.Iterator;
 
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellValue;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
@@ -45,7 +44,9 @@ public class ExcelTsv {
 		}
         System.out.println("[INFO]処理を開始しました");
         String arg0=args[0].replaceFirst("\\\\$", "");
+        arg0=arg0.replaceFirst("\\/$", "");
         String arg1=args[1].replaceFirst("\\\\$", "");
+        arg1=arg1.replaceFirst("\\/$", "");
         formatter = new DataFormatter();
 
 		Path start_dir = Paths.get(arg0);
@@ -222,12 +223,6 @@ public class ExcelTsv {
 				if (ret.endsWith("_ ")) {
 					ret = ret.substring(0, ret.length() -2);
 				}
-/*
-				ret=getFormulaValue(cell);
-				if (ret == null){
-					ret="";
-				}
-*/
 				break;
 			case ERROR:
 				ret="##ERROR="+String.valueOf(cell.getErrorCellValue())+"##";
@@ -243,5 +238,5 @@ public class ExcelTsv {
 	private static String toTsvString(String src){
 		return src.replace("\\","\\\\" ).replace("\n","\\n" ).replace("\t","\\t" ).replace("\"","\\\"" );
 	}
-
+}
 
