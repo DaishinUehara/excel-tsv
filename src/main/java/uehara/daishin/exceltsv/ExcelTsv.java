@@ -20,6 +20,7 @@ import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellValue;
 import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -32,6 +33,8 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
  */
 public class ExcelTsv {
 
+
+	public static DataFormatter formatter;
 	/**
 	 * @param args
 	 */
@@ -43,6 +46,7 @@ public class ExcelTsv {
         System.out.println("[INFO]処理を開始しました");
         String arg0=args[0].replaceFirst("\\\\$", "");
         String arg1=args[1].replaceFirst("\\\\$", "");
+        formatter = new DataFormatter();
 
 		Path start_dir = Paths.get(arg0);
 		Path abs_start_dir=start_dir.toAbsolutePath();
@@ -193,11 +197,9 @@ public class ExcelTsv {
 		} else {
 			switch(cell.getCellType()){
 			case NUMERIC:
-				double d=cell.getNumericCellValue();
-				if ( d == (long) d){
-					ret=String.format("%d",(long)d);
-				} else {
-					ret=String.format("%s",d);
+				ret = formatter.formatCellValue(cell);
+				if (ret.endsWith("_ ")) {
+					ret = ret.substring(0, ret.length() -2);
 				}
 				break;
 			case STRING:
@@ -207,13 +209,25 @@ public class ExcelTsv {
 				ret= "";
 				break;
 			case BOOLEAN:
-				ret=String.valueOf(cell.getBooleanCellValue());
+				ret = formatter.formatCellValue(cell);
+				if (ret.endsWith("_ ")) {
+					ret = ret.substring(0, ret.length() -2);
+				}
 				break;
 			case FORMULA:
+		        Workbook book = cell.getSheet().getWorkbook();
+		        CreationHelper helper = book.getCreationHelper();
+		        FormulaEvaluator evaluator = helper.createFormulaEvaluator();
+				ret = formatter.formatCellValue(cell,evaluator);
+				if (ret.endsWith("_ ")) {
+					ret = ret.substring(0, ret.length() -2);
+				}
+/*
 				ret=getFormulaValue(cell);
 				if (ret == null){
 					ret="";
 				}
+*/
 				break;
 			case ERROR:
 				ret="##ERROR="+String.valueOf(cell.getErrorCellValue())+"##";
@@ -222,7 +236,6 @@ public class ExcelTsv {
 				ret= "";
 				break;
 			}
-
 		}
 		return ret;
 	}
@@ -230,45 +243,5 @@ public class ExcelTsv {
 	private static String toTsvString(String src){
 		return src.replace("\\","\\\\" ).replace("\n","\\n" ).replace("\t","\\t" ).replace("\"","\\\"" );
 	}
-
-
-    private static String getFormulaValue(Cell fcell) {
-		String ret="";
-        Workbook book = fcell.getSheet().getWorkbook();
-        CreationHelper helper = book.getCreationHelper();
-        FormulaEvaluator evaluator = helper.createFormulaEvaluator();
-        CellValue value = evaluator.evaluate(fcell);
-
-        switch(value.getCellType()){
-		case NUMERIC:
-			double d=value.getNumberValue();
-			if ( d == (long) d){
-				ret=String.format("%d",(long)d);
-			} else {
-				ret=String.format("%s",d);
-			}
-			break;
-		case STRING:
-			ret=value.getStringValue();
-			break;
-		case BLANK:
-			ret="";
-			break;
-		case BOOLEAN:
-			ret=String.valueOf(value.getBooleanValue());
-			break;
-		case FORMULA:
-			ret="##ERROR=FORMULA_ERROR##";
-			break;
-		case ERROR:
-			ret="##ERROR="+String.valueOf(value.getErrorValue())+"##";
-			break;
-		default:
-			ret= "";
-			break;
-		}
-        return ret;
-    }
-}
 
 
